@@ -30,7 +30,6 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -131,37 +130,30 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
 		}
 	}
 
-	private static String removeScript(String a) {
-		final List toRemove = new ArrayList();
-		final Pattern p = Pattern.compile("(<script\\s*)");
-		final Matcher m = p.matcher(a);
-		int start = 0;
-		while (m.find(start)) {
-			final int is = m.start();
-			int ie = m.start();
-			while (ie < a.length()) {
-				if (a.substring(ie).startsWith("</script>")) {
-					ie = ie + 9;
-					break;
-				} else {
-					ie++;
-				}
-			}
-			start = ie + 1;
-			toRemove.add(a.substring(is, ie));
-			if (start >= a.length()) {
-				break;
-			}
-		}
-		for (int i = 0; i < toRemove.size(); i++) {
-			final String rem = (String) toRemove.get(i);
-			final int index = a.indexOf(rem);
-			a = a.substring(0, index) + a.substring(index + rem.length());
-		}
-		return a;
-	}
+    //It's possible for html to contain a script tag after a script tag has been removed
+    // like this: <scri<script>blah</script>pt>
+    //so we should keep doing the replacement until nothing changes
+    private static String removeScripts(String rawHtml) {
+        String prev = null;
+        String next = rawHtml;
+        do {
+            prev = next;
+            next = removeScript(prev);
+        } while (next != prev); //intentional use of != instead of equals. we are checking if it's the same string reference.
+        return next;
+    }
 
-	private final ThreadLocal tlparser = new ThreadLocal();
+    //take note of the \s* in the closing tag. browsers accept extra whitespace there so we should deal with it.
+    private static final Pattern htmlScriptsPattern = Pattern.compile("<script.*?>.*?</script\\s*>");
+	private static String removeScript(String html) {
+        final Matcher m = htmlScriptsPattern.matcher(html);
+        while (m.find()) {
+            html = m.replaceAll("");
+        }
+        return html;
+    }
+
+    private final ThreadLocal tlparser = new ThreadLocal();
 
 	private final ThreadLocal tlrenderer = new ThreadLocal();
 
@@ -572,18 +564,17 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
 			}
 			r.close();
 			ByteArrayOutputStream bout = new ByteArrayOutputStream();
+            //remove scripts before we send it to jtidy, because jtidy r938 can fail on some scripts and this avoids it
+            String scriptsGone = removeScripts(s.toString());
+
 			tidy.parse(
-					new ByteArrayInputStream(s.toString().getBytes("utf-8")),
+					new ByteArrayInputStream(scriptsGone.getBytes("utf-8")),
 					bout);
-			final String result = CHtmlToPdfFlyingSaucerTransformer
-					.removeScript(new String(bout.toByteArray(), "utf-8"));
+			final String result = new String(bout.toByteArray(), "utf-8");
 			Document theDoc = parser
-					.parse(new InputStreamReader(new ByteArrayInputStream(
-							result.getBytes("utf-8")), "utf-8"));
+					.parse(new StringReader(result));
 			if (theDoc.toString().length() == 0) {
-				theDoc = parser.parse(new StringReader(
-						CHtmlToPdfFlyingSaucerTransformer.removeScript(s
-								.toString())));
+				theDoc = parser.parse(new StringReader(scriptsGone));
 			}
 			this.convertInputToVisibleHTML(theDoc);
 			this.convertComboboxToVisibleHTML(theDoc);
