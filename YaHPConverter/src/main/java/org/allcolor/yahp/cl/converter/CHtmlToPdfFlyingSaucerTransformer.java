@@ -572,7 +572,7 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
             String cleaningLibraryPropName = "htmlCleaningLibrary";
             String htmlCleaningLibrary = System.getProperty(cleaningLibraryPropName);
             if(htmlCleaningLibrary == null) {
-                System.out.println("Missing system property \"" + cleaningLibraryPropName + "\". Possible values are jsoup, htmlcleaner, and jtidy. Defaulting to jsoup");
+                System.out.println("Missing system property " + cleaningLibraryPropName + ". Possible values are jsoup, htmlcleaner, and jtidy. Defaulting to jsoup");
                 htmlCleaningLibrary = "jsoup";
             }
 
@@ -591,14 +591,14 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
                         bout);
                 result = new String(bout.toByteArray(), "utf-8");
             } else {
-                throw new RuntimeException("Illegal value for system property " + cleaningLibraryPropName + ": " + htmlCleaningLibrary + ". Expected jsoup, htmlcleaner, or jtidy");
+                throw new RuntimeException("Invalid value for system property " + cleaningLibraryPropName + ": \"" + htmlCleaningLibrary + "\". Expected jsoup, htmlcleaner, or jtidy");
             }
 
             Document theDoc = parser.parse(new StringReader(result));
 
 
             if (theDoc.toString().length() == 0) {
-                throw new CConvertException("jsoup failed on this document.");
+                throw new CConvertException("conversion failed on this document and it gave back an empty string.");
 			}
 			this.convertInputToVisibleHTML(theDoc);
 			this.convertComboboxToVisibleHTML(theDoc);
