@@ -68,7 +68,7 @@ public class CSimpleConversion {
 		String  cryptLocation    = getParameter(args, "--cryptlocation");
 		
 		if (outfile == null) {
-			showUsage("--out file must exists !");
+			showUsage("--out file must exist !");
 		} // end if
 
 		try {
@@ -87,12 +87,12 @@ public class CSimpleConversion {
 
 			Map properties = new HashMap();
 
-			headerFooterList.add(new IHtmlToPdfTransformer.CHeaderFooter(
-					"<table width=\"100%\"><tbody><tr><td align=\"left\">Generated with YaHPConverter.</td><td align=\"right\">Page <pagenumber>/<pagecount></td></tr></tbody></table>",
-					IHtmlToPdfTransformer.CHeaderFooter.HEADER));
-			headerFooterList.add(new IHtmlToPdfTransformer.CHeaderFooter(
-					"© 2011 Quentin Anciaux",
-					IHtmlToPdfTransformer.CHeaderFooter.FOOTER));
+//			headerFooterList.add(new IHtmlToPdfTransformer.CHeaderFooter(
+//					"<table width=\"100%\"><tbody><tr><td align=\"left\">Generated with YaHPConverter.</td><td align=\"right\">Page <pagenumber>/<pagecount></td></tr></tbody></table>",
+//					IHtmlToPdfTransformer.CHeaderFooter.HEADER));
+//			headerFooterList.add(new IHtmlToPdfTransformer.CHeaderFooter(
+//					"© 2011 Quentin Anciaux",
+//					IHtmlToPdfTransformer.CHeaderFooter.FOOTER));
 			
 			properties.put(IHtmlToPdfTransformer.PDF_RENDERER_CLASS,
 					IHtmlToPdfTransformer.FLYINGSAUCER_PDF_RENDERER);
