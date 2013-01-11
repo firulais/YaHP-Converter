@@ -144,7 +144,7 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
     }
 
     //take note of the \s* in the closing tag. browsers accept extra whitespace there so we should deal with it.
-    private static final Pattern htmlScriptsPattern = Pattern.compile("<script.*?>.*?</script\\s*>");
+    private static final Pattern htmlScriptsPattern = Pattern.compile("(?s)<script.*?>.*?</script\\s*>");
 	private static String removeScript(String html) {
         final Matcher m = htmlScriptsPattern.matcher(html);
         while (m.find()) {
