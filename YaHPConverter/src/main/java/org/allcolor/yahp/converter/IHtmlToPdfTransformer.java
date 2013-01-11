@@ -52,6 +52,11 @@ public interface IHtmlToPdfTransformer {
 		public CConvertException(final String message, final Throwable cause) {
 			super(message, cause);
 		} // end CConvertException()
+
+        public CConvertException(final String message) {
+            super(message);
+        }
+
 	} // end CConvertException
 
 	/**

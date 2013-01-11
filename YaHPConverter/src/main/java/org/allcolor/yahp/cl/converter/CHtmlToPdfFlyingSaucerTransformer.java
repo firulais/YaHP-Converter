@@ -55,6 +55,10 @@ import org.allcolor.xml.parser.dom.ADocument;
 import org.allcolor.yahp.cl.converter.CDocumentCut.DocumentAndSize;
 import org.allcolor.yahp.converter.IHtmlToPdfTransformer;
 import org.apache.log4j.Logger;
+import org.htmlcleaner.HtmlCleaner;
+import org.htmlcleaner.SimpleHtmlSerializer;
+import org.htmlcleaner.TagNode;
+import org.jsoup.Jsoup;
 import org.w3c.dom.CDATASection;
 import org.w3c.dom.Comment;
 import org.w3c.dom.Document;
@@ -145,11 +149,10 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
 
     //take note of the \s* in the closing tag. browsers accept extra whitespace there so we should deal with it.
     private static final Pattern htmlScriptsPattern = Pattern.compile("(?s)<script.*?>.*?</script\\s*>");
+
 	private static String removeScript(String html) {
         final Matcher m = htmlScriptsPattern.matcher(html);
-        while (m.find()) {
-            html = m.replaceAll("");
-        }
+        html = m.replaceAll("");
         return html;
     }
 
@@ -566,15 +569,36 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
 			ByteArrayOutputStream bout = new ByteArrayOutputStream();
             //remove scripts before we send it to jtidy, because jtidy r938 can fail on some scripts and this avoids it
             String scriptsGone = removeScripts(s.toString());
+            String cleaningLibraryPropName = "htmlCleaningLibrary";
+            String htmlCleaningLibrary = System.getProperty(cleaningLibraryPropName);
+            if(htmlCleaningLibrary == null) {
+                System.out.println("Missing system property \"" + cleaningLibraryPropName + "\". Possible values are jsoup, htmlcleaner, and jtidy. Defaulting to jsoup");
+                htmlCleaningLibrary = "jsoup";
+            }
 
-			tidy.parse(
-					new ByteArrayInputStream(scriptsGone.getBytes("utf-8")),
-					bout);
-			final String result = new String(bout.toByteArray(), "utf-8");
-			Document theDoc = parser
-					.parse(new StringReader(result));
-			if (theDoc.toString().length() == 0) {
-				theDoc = parser.parse(new StringReader(scriptsGone));
+            String result;
+            if (htmlCleaningLibrary.equals("jsoup")) {
+                org.jsoup.nodes.Document parsedDoc = Jsoup.parse(scriptsGone, urlForBase);
+                result = parsedDoc.outerHtml();
+            } else if (htmlCleaningLibrary.equals("htmlcleaner")) {
+                final HtmlCleaner cleaner = new HtmlCleaner();
+                TagNode cleanedHtml = cleaner.clean(scriptsGone);
+                SimpleHtmlSerializer serializer = new SimpleHtmlSerializer(cleaner.getProperties());
+                result = serializer.getAsString(cleanedHtml);
+            } else if (htmlCleaningLibrary.equals("jtidy")) {
+                tidy.parse(
+                        new ByteArrayInputStream(scriptsGone.getBytes("utf-8")),
+                        bout);
+                result = new String(bout.toByteArray(), "utf-8");
+            } else {
+                throw new RuntimeException("Illegal value for system property " + cleaningLibraryPropName + ": " + htmlCleaningLibrary + ". Expected jsoup, htmlcleaner, or jtidy");
+            }
+
+            Document theDoc = parser.parse(new StringReader(result));
+
+
+            if (theDoc.toString().length() == 0) {
+                throw new CConvertException("jsoup failed on this document.");
 			}
 			this.convertInputToVisibleHTML(theDoc);
 			this.convertComboboxToVisibleHTML(theDoc);
