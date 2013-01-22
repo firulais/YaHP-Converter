@@ -45,6 +45,7 @@ public class BasicYahpTest {
         String output = "output.pdf";
 
         Properties props = new Properties();
+        props.put(IHtmlToPdfTransformer.HTML_CLEANING_LIBRARY, "jsoup");
 
         FileOutputStream out = new FileOutputStream(output);
         converter.convertToPdf(new URL(input),

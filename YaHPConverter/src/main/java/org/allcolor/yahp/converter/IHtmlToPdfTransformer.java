@@ -893,8 +893,16 @@ public interface IHtmlToPdfTransformer {
 	 */
 	public static final String USE_PDF_SIGNING = "yahp.USE_PDF_SIGNING";
 
+    /**
+     * decide which cleaning library to use
+     * legal values are: jtidy, jsoup, htmlcleaner
+     */
+    public static final String HTML_CLEANING_LIBRARY = "yahp.HTML_CLEANING_LIBRARY";
+
 	/** YaHP Converter version */
 	public static final String VERSION = "YaHP Converter v1.3 §20111121";
+
+
 
 	/**
 	 * Transform the html document in the inputstream to a pdf in the

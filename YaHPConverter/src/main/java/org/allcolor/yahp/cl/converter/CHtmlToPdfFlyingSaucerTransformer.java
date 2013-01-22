@@ -39,12 +39,7 @@ import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.net.URL;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -555,7 +550,6 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
 			final OutputStream out) throws CConvertException {
 		final List files = new ArrayList();
 		try {
-			final Tidy tidy = this.getTidy();
 			final CShaniDomParser parser = this.getCShaniDomParser();
 			final _ITextRenderer renderer = this.getITextRenderer();
 			final Reader r = CXmlParser.getReader(in);
@@ -567,13 +561,12 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
 			}
 			r.close();
 			ByteArrayOutputStream bout = new ByteArrayOutputStream();
-            //remove scripts before we send it to jtidy, because jtidy r938 can fail on some scripts and this avoids it
+            //remove scripts before we send it to an html cleaner. (jtidy can fail on scripts and probably others too)
             String scriptsGone = removeScripts(s.toString());
-            String cleaningLibraryPropName = "htmlCleaningLibrary";
-            String htmlCleaningLibrary = System.getProperty(cleaningLibraryPropName);
+
+            String htmlCleaningLibrary = (String) properties.get(IHtmlToPdfTransformer.HTML_CLEANING_LIBRARY);
             if(htmlCleaningLibrary == null) {
-                System.out.println("Missing system property " + cleaningLibraryPropName + ". Possible values are jsoup, htmlcleaner, and jtidy. Defaulting to jsoup");
-                htmlCleaningLibrary = "jsoup";
+                htmlCleaningLibrary = "jtidy";
             }
 
             String result;
@@ -586,12 +579,13 @@ public final class CHtmlToPdfFlyingSaucerTransformer implements
                 SimpleHtmlSerializer serializer = new SimpleHtmlSerializer(cleaner.getProperties());
                 result = serializer.getAsString(cleanedHtml);
             } else if (htmlCleaningLibrary.equals("jtidy")) {
+                final Tidy tidy = this.getTidy();
                 tidy.parse(
                         new ByteArrayInputStream(scriptsGone.getBytes("utf-8")),
                         bout);
                 result = new String(bout.toByteArray(), "utf-8");
             } else {
-                throw new RuntimeException("Invalid value for system property " + cleaningLibraryPropName + ": \"" + htmlCleaningLibrary + "\". Expected jsoup, htmlcleaner, or jtidy");
+                throw new RuntimeException("Invalid value for yahp property IHtmlToPdfTransformer.HTML_CLEANING_LIBRARY: " + htmlCleaningLibrary + "\". Expected jsoup, htmlcleaner, or jtidy");
             }
 
             Document theDoc = parser.parse(new StringReader(result));
