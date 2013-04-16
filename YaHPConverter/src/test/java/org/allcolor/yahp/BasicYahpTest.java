@@ -24,19 +24,20 @@ package org.allcolor.yahp;
 
 import org.allcolor.yahp.converter.CYaHPConverter;
 import org.allcolor.yahp.converter.IHtmlToPdfTransformer;
+import org.apache.commons.io.FileUtils;
 import org.testng.annotations.Test;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.Properties;
 
 /**
- * This goes to a URL and makes a pdf out of it
+ * //TODO: fix these tests so they can just run out of the box
  */
 public class BasicYahpTest {
 
-    @Test
     public void createPdf() throws Exception {
 
         CYaHPConverter converter = new CYaHPConverter();
@@ -62,7 +63,6 @@ public class BasicYahpTest {
      * triggering this jtidy bug.
      * @throws Exception
      */
-    @Test
     public void testScriptWithTagInside() throws Exception {
          CYaHPConverter converter = new CYaHPConverter();
 
@@ -81,7 +81,6 @@ public class BasicYahpTest {
      * jtidy makes this fail because the html is invalid
      * @throws Exception
      */
-    @Test
     public void testInvalidHtml() throws Exception {
          CYaHPConverter converter = new CYaHPConverter();
 
@@ -94,5 +93,27 @@ public class BasicYahpTest {
         converter.convertToPdf(html,
 				IHtmlToPdfTransformer.A4P, new LinkedList(), "http://localhost", out,
 				props);
+    }
+
+
+    public void testLocalHtml() throws Exception {
+        CYaHPConverter converter = new CYaHPConverter();
+        File f = new File("/home/slavelle/yahptest.html");
+//        String input = FileUtils.readFileToString(f, "UTF-8");
+        String url = "file://" + f.getAbsolutePath();
+        String output = "output.pdf";
+
+        Properties props = new Properties();
+        props.put(IHtmlToPdfTransformer.HTML_CLEANING_LIBRARY, "jsoup");
+
+        FileOutputStream out = new FileOutputStream(output);
+
+        converter.convertToPdf(new URL(url),
+				IHtmlToPdfTransformer.A4P, new LinkedList(), out,
+				props);
+
+//        converter.convertToPdf(input,
+//				IHtmlToPdfTransformer.A4P, new LinkedList(), "http://localhost", out,
+//				props);
     }
 }

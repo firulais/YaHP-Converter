@@ -1,23 +1,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
+    <parent>
+        <groupId>com.thetus.org.allcolor</groupId>
+        <artifactId>yahp-aggregator</artifactId>
+        <version>1.3-thetus-1-SNAPSHOT</version>
+    </parent>
+
     <groupId>com.thetus.org.allcolor</groupId>
     <artifactId>yahp</artifactId>
-    <version>1.3-thetus-1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>YaHP</name>
     <description>YaHP (Yet another HTML to PDF converter) can take a webpage and turn it into a pdf.</description>
 
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compile.encoding>UTF-8</maven.compile.encoding>
-        <java.version>1.6</java.version>
-    </properties>
-
     <dependencies>
-
 
         <dependency>
             <groupId>com.lowagie</groupId>
@@ -55,8 +52,15 @@
             <version>2.2</version>
         </dependency>
 
-        <!-- these dependencies are not actually a part of yahp, but these jars were shipped with yahp without any version info -->
-        <!-- so to make sure we get the right versions, we uploaded them to artifactory looking like this -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>1.3.2</version>
+            <type>jar</type>
+        </dependency>
+
+        <!-- these two dependencies were just jars that shipped with yahp without any version info. They're in YaHPConverter/lib -->
+        <!-- In order to build this project with maven, you need to upload them to your artifactory/nexus/local-maven-repo looking like this. -->
         <dependency>
             <groupId>com.thetus.org.allcolor</groupId>
             <artifactId>yahp-core-renderer</artifactId>
